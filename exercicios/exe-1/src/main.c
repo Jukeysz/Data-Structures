@@ -23,26 +23,32 @@ int main( void ) {
                 getchar();
                 // if names is empty, allocate memory and copy contents from "name"
                 if ( names == NULL ) {
-                    names = ( char * ) malloc( strlen( name ) + 1);
+                    names = ( char * ) malloc( strlen( name ) + 1 );
                     int i;
-                    for ( i = 0; i < strlen(name); i++ ) {
-                        names[i] = name[i];
-                    }
+                    // for ( i = 0; i < strlen(name); i++ ) {
+                    //     names[i] = name[i];
+                    // }
+                    strncpy( names, name, strlen( name ) );
                     // add the null terminator
-                    names[i + 1] = '\0';
+                    // names[i + 1] = '\0';
                 } else {
                     // realloc the memory that names holds and add the size that name
                     // holds (which is the strlen of both, plus the null terminator of one of them)
-                    names = ( char * ) realloc( names,  strlen( names ) + strlen( name ) + 1 );
-                    
+
+                    char *newNames = ( char * ) realloc( names,  strlen( names ) + strlen( name ) + 1 );
+                    names = newNames;
+
                     // start copying the contents from "name", getting the correct offset index
                     // which just happens to be the strlen of names because it is an index
-                    int i = 0;
-                    int j = 0;
-                    for ( i = strlen( names ), j; j < strlen( name ); i++, j++ ) {
-                        names[i] = name[j];
-                    }
-                    names[i + 1] = '\0';
+                    // int i = 0;
+                    // int j = 0;
+                    // for ( i = strlen( names ), j; j < strlen( name ); i++, j++ ) {
+                    //     names[i] = name[j];
+                    // }
+                    // names[i + 1] = '\0';
+
+                    // pointer arithmetic
+                    strcpy(names + strlen(names), name);
                 }
                 break;
             }
@@ -57,7 +63,7 @@ int main( void ) {
                 // to the index and continue copying
 
                 int nameLength = strlen( name );
-                char *newNames = malloc( sizeof( names ) - nameLength );
+                char *newNames = malloc( strlen( names ) - nameLength );
                 int subStringIndex;
                 int i, j, k, l;
 
@@ -65,6 +71,7 @@ int main( void ) {
                 for ( i = 0; i < strlen( names ); i++ ) {
                     int matchSequence = 0;
                     if ( names[i] == name[0] ) {
+                        // if the l makes the loop run collapse the string, is it an issue
                         for ( j = i, k = 0, l = 0; l < strlen( name ); j++, k++, l++ ) {
                             if ( names[j] == name[k] ) {
                                 matchSequence++;
@@ -91,6 +98,7 @@ int main( void ) {
                     i++;
                 }
                 newNames[j + 1] = '\0';
+                free(names);
                 names = newNames;
                 break;
             }
