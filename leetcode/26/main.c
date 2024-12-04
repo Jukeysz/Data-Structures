@@ -21,45 +21,17 @@ int main( void ) {
 }
 
 int removeDuplicates( int *nums, int numsLength ) {
-	num hashes[10] = {
-		{0, 0},
-		{1, 0},
-		{2, 0},
-		{3, 0},
-		{4, 0},
-		{5, 0},
-		{6, 0},
-		{7, 0},
-		{8, 0},
-		{9, 0}
-	};
-
 	size_t nextIndex = 0;
-	int sum = 0;
-
-	for ( int i = 0; i < numsLength; i++ ) {
-		// todo write instruction
-		for ( int j = 0; j < 10; j++ ) {
-			if ( hashes[j].count == 2 && hashes[j].done == 0) {
-				nums[nextIndex] = hashes[j].symbol;
-				hashes[j].done = 1;
-				nextIndex++;
-			}
-		}
-		
-		// check duplicates
-		for ( int j = 0; j < 10; j++ ) {
-			if ( hashes[j].symbol == nums[i] ) {
-				hashes[j].count++;
-				continue;
-			}
-		}
+	int duplicateCount = 0;
+	int i = 0;
+	while ( i < numsLength ) {
+		int j = i + 1;
+		for ( j; nums[i] == nums[j] && j < numsLength - 1; j++ );
+		duplicateCount++;
+		nums[nextIndex] = nums[i];
+		nextIndex++;
+		i = j;
 	}
 
-	// operate sum of all duplicates
-	for ( int i = 0; i < nextIndex; i++) {
-		sum += nums[i];
-	}
-
-	return sum;
+	return duplicateCount;
 }
