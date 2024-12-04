@@ -3,12 +3,6 @@
 
 int removeDuplicates( int *nums, int numsLength );
 
-typedef struct num {
-	int symbol;
-	int count;
-	int done;
-} num;
-
 int main( void ) {
 	int nums[] = { 0,0,1,1,1,2,2,3,3,4 }; // should return 5 and the in place list
 	int numsLength = 10;
