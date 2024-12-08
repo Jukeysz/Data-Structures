@@ -74,7 +74,6 @@ listNode_t* recursiveAddTraverse(listNode_t *l1, listNode_t *l2, int carry) {
     if (!l1 && !l2 && carry == 0) {
         return NULL;
     }
-
     int val1 = (l1) ? l1->val : 0;
     int val2 = (l2) ? l2->val : 0;
 
@@ -89,6 +88,8 @@ listNode_t* recursiveAddTraverse(listNode_t *l1, listNode_t *l2, int carry) {
     }
     new->val = sum;
 
+    // had to add these checks because if one list comes to an end, they would try
+    // an invalid access to (*l1).next 
     new->next = recursiveAddTraverse(
         (l1) ? l1->next : NULL,
         (l2) ? l2->next : NULL,
