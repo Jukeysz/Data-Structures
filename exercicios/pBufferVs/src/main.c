@@ -21,16 +21,17 @@ int main( void ) {
 	// before DATASPOT, we have the intermediate vars, and after it
 	// we have the user data
 
-	// TODO: two functions manipulating the same firstflag variable is messy
-	
 	void *pBuffer = malloc(500 * sizeof(char));
 	if (pBuffer == NULL) {
 		printf("Failed to allocate memory buffer\n");
 		return 1;
 	}
 	int *op = pBuffer;
+
+	// determines how many users there are in the list
+	// useful for removing elements that are unique on the list
 	int *hasUser = pBuffer + 4;
-	*hasUser = 1;
+	*hasUser = 0;
 	
 	
 	// buffer for searching a name
@@ -44,6 +45,10 @@ int main( void ) {
 	// how many bytes to copy after the region to be shrinked 
 	int *remainingSize = pBuffer + 111;
 
+	// making the list empty
+	char *colon = pBuffer + 115;
+	*colon = ':';
+
 	printf("buffer agenda\n1- add person(Name, Age, Email)\n2- remove person\n3- search person\n4- list all\n5-exit\n");
 	while( printf("Op:"), scanf( "%i", op ) ) {
 		getchar();
@@ -53,7 +58,7 @@ int main( void ) {
 				// beginning of the data spot
 				char *byteBuffer = pBuffer + 115;
 				// find the offset to copy memory to (only valid if there is already something in the buffer)
-				if (!(*hasUser)) {
+				if (*byteBuffer != ':') {
 					while ( *byteBuffer != ':' ) {
 						byteBuffer++;
 					}
@@ -81,7 +86,7 @@ int main( void ) {
 				// it is pertinent to use memcpy perhaps
 
 				// if I am adding a user and there are already some, adjust the old colon into a semicolon
-				if (!*hasUser) {
+				if (*byteBuffer != ':') {
 					*(byteBuffer - 1) = ';';
 				}
 				
@@ -96,7 +101,7 @@ int main( void ) {
 				// this is of subtle importance when calculating the offset for the next person
 				//memcpy(byteBuffer + *nameLength + *ageLength + *emailLength, colon, strlen(colon));
 				*(byteBuffer + strlen(tempName) + 1 + strlen(tempAge) + 1 + strlen(tempEmail) + 1)  = ':';
-				*hasUser = 0;
+				(*hasUser)++;
 
 				break;
 			} break;
@@ -116,55 +121,55 @@ int main( void ) {
 				username[strcspn(username, "\n")] = '\0';
 
 				char *byteBuffer;
-				// change this variable, its purpose is telling whether or not the user is at the beginning
-				*hasUser = 1;
 
 				for (byteBuffer = pBuffer + 115; *byteBuffer != ':'; byteBuffer++) {
-					if (*byteBuffer == ';' || *hasUser) {
-						if (!(*hasUser)) {
+					// compare strings if reading at the beginning, when byteBuffer == pBuffer
+					if (*byteBuffer == ';' || byteBuffer == pBuffer + 115) {
+						// advancing through the char after ';', except when at the beginning
+						if (byteBuffer != pBuffer + 115) {
 							byteBuffer++;
-						}
-						// takes the beginning of byte buffer up to the next \0
-
-						// Objective:
-						// make a variable that counts how many users exist
-						// the intention is about removing a unique user in the buffer
-						// the only way I can handle this is using memset from pBuffer + 115 
+						} 
 						if (strcmp(byteBuffer, username) == 0) {
 							char *remaining = byteBuffer;
-							if (!(*hasUser)) {
-								byteBuffer -= 1;
-							}
-							char *auxRemaining = NULL;
-							
-							while (*remaining != ':' && *remaining != ';') {
-								remaining++;
-							}
-							// if the name to be removed is at the beginning
-							// the region to be moved is the first char in the
-							// next user and the target is byteBuffer
-							if (*hasUser) {
-								remaining++;
-							}
+							// if there is a single user and strcmp passed, just clean up the buffer by adding : at the beginning
+							if (*hasUser == 1) {
+								*byteBuffer = ':';
+								*hasUser = 0;
+								break;
+							} else {
+								// if the name to be removed is not the first in the list, step right into the ';'
+								// this is gonna be the beginning of the section to be replaced
+								if (byteBuffer != pBuffer + 115) {
+									byteBuffer -= 1;
+								}
+								char *auxRemaining = NULL;
+								
+								while (*remaining != ':' && *remaining != ';') {
+									remaining++;
+								}
+								// the region to be moved is the first char of the
+								// next user to the beginning
+								if (byteBuffer == pBuffer + 115) {
+									remaining++;
+								}
 
-							/// remaining ends up pointing at one address that has ':' or ';'
-							// auxremaining exists for counting how many characters still exist in the rest of the buffer
-							auxRemaining = remaining;
-							// 1 because there has to be at least one ';' or ':'
-							*remainingSize = 1;						
-							while (*auxRemaining != ':') {
-								(*remainingSize)++;
-								auxRemaining++;
+								/// remaining ends up pointing at one address that has ':' or ';'
+								// auxremaining exists for counting how many characters still exist in the rest of the buffer
+								auxRemaining = remaining;
+								// 1 because there has to be at least one ';' or ':'
+								*remainingSize = 1;						
+								while (*auxRemaining != ':') {
+									(*remainingSize)++;
+									auxRemaining++;
+								}
+
+								memmove(byteBuffer, remaining, *remainingSize);
+								(*hasUser)--;
+								break;
 							}
-
-							memmove(byteBuffer, remaining, *remainingSize);
-
-							break;
 						}
 					}
-					*hasUser = 0;
 				}
-				*hasUser = 1;
 				printf("Username not found\n");
 				break;
 			}
