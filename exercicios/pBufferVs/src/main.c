@@ -125,22 +125,30 @@ int main( void ) {
 							byteBuffer++;
 						}
 						// takes the beginning of byte buffer up to the next \0
-						if (strcmp(byteBuffer, username) == 0) {
-							// once I found the string, take the beginning into account 
-							// and find the index of the next ';' or ':'
-							// remaining points to the beginning of the section that comes after the chunk that has to be removed
 
-							// the beginning of the region to be overwritten is the ';'
-							// so bytebuffer - 1
+						// Objective:
+						// make a variable that counts how many users exist
+						// the intention is about removing a unique user in the buffer
+						// the only way I can handle this is using memset from pBuffer + 115 
+						if (strcmp(byteBuffer, username) == 0) {
 							char *remaining = byteBuffer;
-							byteBuffer -= 1;
+							if (!(*hasUser)) {
+								byteBuffer -= 1;
+							}
 							char *auxRemaining = NULL;
 							
 							while (*remaining != ':' && *remaining != ';') {
 								remaining++;
 							}
+							// if the name to be removed is at the beginning
+							// the region to be moved is the first char in the
+							// next user and the target is byteBuffer
+							if (*hasUser) {
+								remaining++;
+							}
 
 							/// remaining ends up pointing at one address that has ':' or ';'
+							// auxremaining exists for counting how many characters still exist in the rest of the buffer
 							auxRemaining = remaining;
 							// 1 because there has to be at least one ';' or ':'
 							*remainingSize = 1;						
@@ -156,6 +164,7 @@ int main( void ) {
 					}
 					*hasUser = 0;
 				}
+				*hasUser = 1;
 				printf("Username not found\n");
 				break;
 			}
