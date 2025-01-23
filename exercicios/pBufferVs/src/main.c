@@ -179,7 +179,7 @@ int main( void ) {
 					// TODO
 					// Print only the people names
 					// first one is easy, no need to adjust offset
-					if (byteBuffer == NULL) {
+					if (*byteBuffer == ':') {
 						printf("No users\n");
 						break;
 					} else {
