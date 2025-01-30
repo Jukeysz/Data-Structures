@@ -4,37 +4,61 @@
 #include <string.h>
 
 typedef struct {
-    char *stk;
-    char *top;
-    char *bot;
+    int *stk;
+    int *top;
+    int *bot;
     int limit;
 } myStack;
 
 void Reset(myStack *stack);
 bool Empty(myStack *stack);
 bool Full(myStack *stack);
-bool Push(myStack *stack, char *item);
-char Pop(myStack *stack);
-char Peek(myStack *stack);
+int Push(myStack *stack, int item);
+int Pop(myStack *stack);
+int Peek(myStack *stack);
+int evalRPN(char **tokens, int tokensSize);
 
-int main(int argc, char const *argv[])
-{
-    myStack *pilha = (myStack *)malloc(sizeof(myStack));
-    Reset(pilha);
+int main() {
+    char **tokens = malloc(sizeof(char *) * 3);
+    char *a = "4";
+    char *b = "3";
+    char *c = "-";
+    tokens[0] = a;
+    tokens[1] = b;
+    tokens[2] = c;
+    int result = evalRPN(tokens, 3);
+    printf("Result: %d\n", result);
+}
 
-    char a = 'a';
-    char b = 'b';
-    char c = 'c';
+int evalRPN(char** tokens, int tokensSize) {
+    myStack *stack = malloc(sizeof(myStack));
+    Reset(stack);
 
-    Push(pilha, &a);
-    Push(pilha, &b);
-    Push(pilha, &c);
+    int end = stack->limit;
 
-    char x = Pop(pilha);
-    char y = Pop(pilha);
-    char z = Pop(pilha);
+    for (int i = 0; i < tokensSize; i++) {
+        if (strcmp(tokens[i], "+") == 0) {
+            int a = Pop(stack);
+            int b = Pop(stack);
+            Push(stack, a + b);
+        } else if (strcmp(tokens[i], "-") == 0) {
+            int a = Pop(stack);
+            int b = Pop(stack);
+            Push(stack, a - b);
+        } else if (strcmp(tokens[i], "*") == 0) {
+            int a = Pop(stack);
+            int b = Pop(stack);
+            Push(stack, a * b);
+        } else if (strcmp(tokens[i], "/") == 0) {
+            int a = Pop(stack);
+            int b = Pop(stack);
+            Push(stack, b / a);
+        } else {
+            Push(stack, atoi(tokens[i]));
+        }
+    }
 
-    return 0;
+    return *(stack->top);
 }
 
 void Reset(myStack *stack) {
@@ -52,9 +76,9 @@ bool Full(myStack *stack) {
     return stack->top == stack->stk + (stack->limit - 1);
 }
 
-bool Push(myStack *stack, char *item) {
+int Push(myStack *stack, int item) {
     if (stack->limit != 0) {
-        char *new = (char *)realloc(stack->stk, sizeof(char) * (stack->limit + 1));
+        int *new = (int *)realloc(stack->stk, sizeof(int) * (stack->limit + 1));
         if (new == NULL) {
             printf("Failed to allocate memory\n");
             return 0;
@@ -63,7 +87,7 @@ bool Push(myStack *stack, char *item) {
         stack->top = stack->stk + stack->limit;
         stack->limit++;
     } else {
-        char *new = malloc(sizeof(char));
+        int *new = malloc(sizeof(int));
         if (new == NULL) {
             printf("Failed to allocate memory\n");
             return false;
@@ -75,14 +99,15 @@ bool Push(myStack *stack, char *item) {
         stack->limit++;
     }
 
-    memcpy(stack->top, item, sizeof(char));
-    return true;
+    // memcpy(stack->top, item, sizeof(int));
+    *(stack->top) = item;
+    return 1;
 }
 
-char Pop(myStack *stack) {
+int Pop(myStack *stack) {
     if (stack->limit != 0) {
         int old = *(stack->top);
-        char *new = realloc(stack->stk, sizeof(char) * (stack->limit - 1));
+        int *new = realloc(stack->stk, sizeof(int) * (stack->limit - 1));
         if (new == NULL) {
             Reset(stack);
             return old;
@@ -95,11 +120,14 @@ char Pop(myStack *stack) {
         return old;
     } 
     printf("No elements to be removed!\n");
-    return false;
+    return -1;
 }
 
-char Peek(myStack *stack) {
+int Peek(myStack *stack) {
     if (stack->limit != 0) {
         return *(stack->top);
+    } else {
+        return -1;
     }
 }
+
