@@ -16,12 +16,13 @@ int main( void ) {
 
 	// pBuffer specification (initially has 500 bytes):
 	// op | firstFlag | search | tempName | tempAge | tempEmail | remainingSize | DATASPOT
-	// 4B | 4B        | 30B    | 30B      | 3B      | 40B       | 4B            | rest of the 385 bytes
+	// 4B | 4B        | 30B    | 30B      | 3B      | 40B       | 4B            | single byte that holds a single ':'
 
 	// before DATASPOT, we have the intermediate vars, and after it
 	// we have the user data
 
-	void *pBuffer = malloc(500 * sizeof(char));
+	//void *pBuffer = malloc(125 * sizeof(char));
+	void *pBuffer = malloc(3 * sizeof(int) + 104 * sizeof(char));
 	if (pBuffer == NULL) {
 		printf("Failed to allocate memory buffer\n");
 		return 1;
@@ -56,15 +57,15 @@ int main( void ) {
 			// add user
 			case 1: {
 				// beginning of the data spot
-				char *byteBuffer = pBuffer + 115;
+				// char *byteBuffer = pBuffer + 115;
 				// find the offset to copy memory to (only valid if there is already something in the buffer)
-				if (*byteBuffer != ':') {
-					while ( *byteBuffer != ':' ) {
-						byteBuffer++;
-					}
-					// stepping after the ':'
-					byteBuffer++;
-				}
+				// if (*byteBuffer != ':') {
+				//	while ( *byteBuffer != ':' ) {
+				//		byteBuffer++;
+				//	}
+				//	// stepping after the ':'
+				//	byteBuffer++;
+				//}
 
 				printf("Enter name: ");
 				fgets(tempName, 30, stdin);
@@ -86,7 +87,35 @@ int main( void ) {
 				// it is pertinent to use memcpy perhaps
 
 				// if I am adding a user and there are already some, adjust the old colon into a semicolon
+				char *byteBuffer = pBuffer + 115;
+
+				char *beginning = pBuffer;
+				// find the offset that is the end of the buffer for calculating byteBuffer - beginning
 				if (*byteBuffer != ':') {
+					while ( *byteBuffer != ':' ) {
+						byteBuffer++;
+					}
+				}
+
+				pBuffer = realloc(pBuffer, strlen(tempEmail) + 1 + strlen(tempAge) + 1 + strlen(tempName) + 1 + (byteBuffer - beginning + 2));
+				op = pBuffer;
+				hasUser = pBuffer + 4;
+				search = pBuffer + 8;
+				tempName = pBuffer + 38;
+				tempAge = pBuffer + 68;
+				tempEmail = pBuffer + 71;
+				remainingSize = pBuffer + 111;
+
+
+				byteBuffer = pBuffer + 115;
+				while ( *byteBuffer != ':' ) {
+					byteBuffer++;
+				}
+
+				// if there is more than a single user in the list, reach the beginning of next section to copy memory to
+				// and adjust the old colon into a semicolon
+				if (*hasUser != 0) {
+					byteBuffer++;
 					*(byteBuffer - 1) = ';';
 				}
 				
@@ -133,12 +162,21 @@ int main( void ) {
 							char *remaining = byteBuffer;
 							// if there is a single user and strcmp passed, just clean up the buffer by adding : at the beginning
 							if (*hasUser == 1) {
+								pBuffer = realloc(pBuffer, 3 * sizeof(int) + 104 * sizeof(char));
+								byteBuffer = pBuffer + 115;
 								*byteBuffer = ':';
+								op = pBuffer;
+								hasUser = pBuffer + 4;
+								search = pBuffer + 8;
+								tempName = pBuffer + 38;
+								tempAge = pBuffer + 68;
+								tempEmail = pBuffer + 71;
+								remainingSize = pBuffer + 111;
+
 								*hasUser = 0;
 								break;
 							} else {
-								// if the name to be removed is not the first in the list, step right into the ';'
-								// this is gonna be the beginning of the section to be replaced
+								// had to increment one before for the strcmp, go back to the original idx ';'
 								if (byteBuffer != pBuffer + 115) {
 									byteBuffer -= 1;
 								}
@@ -164,41 +202,87 @@ int main( void ) {
 								}
 
 								memmove(byteBuffer, remaining, *remainingSize);
+
+								remaining = pBuffer + 115;
+								while (*remaining != ':') {
+									remaining++;
+								}
+								byteBuffer = pBuffer;
+
+								pBuffer = realloc(pBuffer, remaining - byteBuffer + 1);
+								op = pBuffer;
+								hasUser = pBuffer + 4;
+								search = pBuffer + 8;
+								tempName = pBuffer + 38;
+								tempAge = pBuffer + 68;
+								tempEmail = pBuffer + 71;
+								remainingSize = pBuffer + 111;
 								(*hasUser)--;
 								break;
 							}
-						}
-					}
-				}
-				printf("Username not found\n");
-				break;
-			}
-			case 4: {
-				char *byteBuffer = pBuffer + 115;
-				if ( byteBuffer != NULL ) {
-					// TODO
-					// Print only the people names
-					// first one is easy, no need to adjust offset
-					if (*byteBuffer == ':') {
-						printf("No users\n");
-						break;
-					} else {
-						char *word = byteBuffer;
-						printf("%s\n", word);
-						
-						// stop at the next semicolon, breaking if it finds any ':'
-						while (*word != ';') {
-							if (*word == ':') {
+							if (*(byteBuffer + 1) == ':') {
+								printf("Username not found");
 								break;
 							}
-							word++;
 						}
-						
-						// +1 for not printing out the semicolon as well
-						printf("%s\n", word + 1);
 					}
+				}
+				break;
+			} break;
+
+			case 3: {
+				char *username = search;
+
+				fgets(username, 30, stdin);
+				username[strcspn(username, "\n")] = '\0';
+
+				char *byteBuffer = pBuffer + 115;
+
+				if (*hasUser == 0) {
+					printf("No users in the list\n");
 					break;
 				}
+
+				while (*byteBuffer != ':') {
+					if (*byteBuffer == ';' || byteBuffer == pBuffer + 115) {
+						if (byteBuffer != pBuffer + 115) {
+							byteBuffer++;
+						}
+						if (strcmp(byteBuffer, username) == 0) {
+							printf("%s\n", byteBuffer);
+							while (*byteBuffer != ':' && *byteBuffer != ';') {
+								if (*byteBuffer == '\0' && *(byteBuffer + 1) != ':' && *(byteBuffer + 1) != ';') {
+									printf("%s\n", byteBuffer + 1);
+								}
+								byteBuffer++;
+							}
+							break;
+						}
+					}
+					byteBuffer++;
+				}
+				break;
+			}
+
+			case 4: {
+				char *byteBuffer = pBuffer + 115;
+				if (*hasUser == 0) {
+					printf("No users\n");
+					break;
+				} else {
+					char *word = byteBuffer;
+					printf("%s\n", word);
+					
+					// stop at the next semicolon, breaking if it finds any ':'
+
+					while (*word != ':') {
+						if (*word == ';') {
+							printf("%s\n", word + 1);
+						}
+						word++;
+					}
+				}
+				break;
 			}
 			case 5: {
 				free(pBuffer);
