@@ -30,7 +30,6 @@ int main( void ) {
 	int *op = pBuffer;
 
 	// determines how many users there are in the list
-	// useful for removing elements that are unique on the list
 	int *hasUser = pBuffer + 4;
 	*hasUser = 0;
 	
@@ -56,17 +55,6 @@ int main( void ) {
 		switch ( *op ) {
 			// add user
 			case 1: {
-				// beginning of the data spot
-				// char *byteBuffer = pBuffer + 115;
-				// find the offset to copy memory to (only valid if there is already something in the buffer)
-				// if (*byteBuffer != ':') {
-				//	while ( *byteBuffer != ':' ) {
-				//		byteBuffer++;
-				//	}
-				//	// stepping after the ':'
-				//	byteBuffer++;
-				//}
-
 				printf("Enter name: ");
 				fgets(tempName, 30, stdin);
 				// remove the \n
@@ -96,8 +84,12 @@ int main( void ) {
 						byteBuffer++;
 					}
 				}
-
-				pBuffer = realloc(pBuffer, strlen(tempEmail) + 1 + strlen(tempAge) + 1 + strlen(tempName) + 1 + (byteBuffer - beginning + 2));
+				// example for second user: when at ':', byteBuffer(index 125) - beginning(0) is 125.
+				// lets say that the next amount of data is 12, so 125 + 12 is 137.
+				// but wait, the required amount is 138, there was an indexation shift.
+				// this happened because the byteBuffer pointer was still at the old positon at calculation time
+				
+				pBuffer = realloc(pBuffer, strlen(tempEmail) + 1 + strlen(tempAge) + 1 + strlen(tempName) + 1 + (byteBuffer - beginning) + 2);
 				op = pBuffer;
 				hasUser = pBuffer + 4;
 				search = pBuffer + 8;
@@ -272,9 +264,6 @@ int main( void ) {
 				} else {
 					char *word = byteBuffer;
 					printf("%s\n", word);
-					
-					// stop at the next semicolon, breaking if it finds any ':'
-
 					while (*word != ':') {
 						if (*word == ';') {
 							printf("%s\n", word + 1);
