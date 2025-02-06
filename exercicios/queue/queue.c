@@ -14,6 +14,13 @@ typedef struct {
 	node *pLast;
 } myQueue;
 
+myQueue* createQueue() {
+	myQueue *q = (myQueue*)malloc(sizeof(myQueue));
+	q->pFirst = NULL;
+	q->pLast = NULL;
+	return q;
+}
+
 bool empty(myQueue *queue) {
 	return queue->pLast == NULL;
 }
@@ -48,11 +55,19 @@ void reset(myQueue *queue) {
 	queue->pFirst = NULL;
 }
 
+int peek(myQueue *queue) {
+	if (empty(queue)) {
+		return -1;
+	}
 
-void push(myQueue *queue, int *data) {
+	return queue->pFirst->info;
+}
+
+
+void push(myQueue *queue, int data) {
 	node *n = (node *)malloc(sizeof(node));
 
-	n->info = *data;
+	n->info = data;
 	n->next = NULL;
 
 	if (empty(queue)) {
@@ -64,18 +79,22 @@ void push(myQueue *queue, int *data) {
 	}
 }
 
-void pop(myQueue *queue) {
+int pop(myQueue *queue) {
 	// queue is empty
 	if (empty(queue)) {
-		return;
+		return -1;
 	}
+	int res;
 	// queue is empty and has a single node
 	if (queue->pFirst == queue->pLast) {
+		res = queue->pFirst;
 		reset(queue);
-		return;
+		return res;
 	}
 
 	node *temp = queue->pFirst;
+	res = temp->info;
 	queue->pFirst = queue->pFirst->next;
 	free(temp);
+	return res;
 }

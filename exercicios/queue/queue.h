@@ -20,4 +20,6 @@ void reset(myQueue *queue);
 
 void push(myQueue *queue, int *data);
 
-void pop(myQueue *queue);
+int pop(myQueue *queue);
+
+myQueue* createQueue();
