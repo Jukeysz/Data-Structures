@@ -26,7 +26,7 @@ node* extractBest(queue* q);
 double maxAverageRatio(int** classes, int classesSize, int* classesColSize, int extraStudents) {
     queue *q = createQueue();
 
-    // original class data
+    // original class datas
     for (int i = 0; i < classesSize; i++) {
         push(q, classes[i][0], classes[i][1], i);
     }
